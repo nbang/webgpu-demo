@@ -73,15 +73,16 @@ async function runOCR(imageUrl) {
         // Generate response
         const outputs = await model.generate({
             ...inputs,
-            max_new_tokens: 512,
+            max_new_tokens: 1024,
             do_sample: false,
             repetition_penalty: 1.1,
         });
 
         // Decode result
-        const generated = processor.batch_decode(outputs, { skip_special_tokens: true }).join('');
+        const generatedFullText = processor.decode(outputs[0], { skip_special_tokens: true });
+        const promptText = processor.decode(inputs.input_ids[0], { skip_special_tokens: true });
 
-        const cleanText = generated.replace(/User:[\s\S]*?Assistant:\s*/, '').trim();
+        const cleanText = generatedFullText.replace(promptText, '').replace(/^A:\s*/, '').trim();
         resultTextarea.value = cleanText;
         setStatus('<i class="bi bi-check-circle-fill me-2"></i>Done!', 'success');
     } catch (e) {
